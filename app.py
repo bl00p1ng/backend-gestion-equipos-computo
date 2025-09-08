@@ -14,7 +14,7 @@ pymysql.install_as_MySQLdb()
 # Crear la conexión a la BD usando variables de entorno
 class MySQL:
     def __init__(self):
-        self.connection = None
+        pass
     
     def init_app(self, app):
         pass
