@@ -1,16 +1,37 @@
 from flask import Flask, render_template, request, redirect
-from flask_mysqldb import MySQL
+import pymysql
+import os
+from dotenv import load_dotenv
+
+# Cargar variables de entorno
+load_dotenv()
 
 app = Flask(__name__)
-#Crear la conexion a la BD
-mysql = MySQL()
 
-app.config['MYSQL_HOST'] = 'localhost'
-app.config['MYSQL_PORT'] = 3306
-app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = ''
-app.config['MYSQL_DB'] = 'proyectowebflask'
-app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
+# Configurar PyMySQL para que funcione como MySQLdb
+pymysql.install_as_MySQLdb()
+
+# Crear la conexión a la BD usando variables de entorno
+class MySQL:
+    def __init__(self):
+        self.connection = None
+    
+    def init_app(self, app):
+        pass
+    
+    @property
+    def connection(self):
+        return pymysql.connect(
+            host=os.getenv('DB_HOST', 'localhost'),
+            port=int(os.getenv('DB_PORT', 3306)),
+            user=os.getenv('DB_USER', 'root'),
+            password=os.getenv('DB_PASSWORD', ''),
+            database=os.getenv('DB_NAME', 'proyectowebflask'),
+            cursorclass=pymysql.cursors.DictCursor,
+            autocommit=True
+        )
+
+mysql = MySQL()
 mysql.init_app(app) 
 
 @app.route('/')
@@ -30,8 +51,8 @@ def guardar():
     descripcion = request.form['descripcion']
     email= request.form['email']
 
-    #Insertar datos en la BD
-    sql="INSERT INTO equipos (descripcion, email) VALUE (%s, %s)"
+    # Insertar datos en la BD
+    sql="INSERT INTO equipos (descripcion, email) VALUES (%s, %s)"
     datos=(descripcion,email)
     conexion=mysql.connection
 
@@ -43,7 +64,7 @@ def guardar():
 
 @app.route('/sitio/borrar/<int:id>')
 def borrar(id):
-    #Insertar datos en la BD
+    # Insertar datos en la BD
     sql="DELETE FROM equipos WHERE id=%s"
     conexion=mysql.connection
     cursor=conexion.cursor()
@@ -54,7 +75,7 @@ def borrar(id):
 
 @app.route('/sitio/editar/<int:id>')
 def editar(id):    
-    #Consulta para cragar los datos en el formulario
+    # Consulta para cargar los datos en el formulario
     sql="SELECT * FROM equipos WHERE id=%s"
     conexion=mysql.connection
     cursor=conexion.cursor()
@@ -69,7 +90,7 @@ def actualizar():
     descripcion = request.form['descripcion']
     email= request.form['email']
 
-    #Insertar datos en la BD
+    # Insertar datos en la BD
     sql="UPDATE equipos SET descripcion=%s, email=%s WHERE id=%s"
     datos=(descripcion,email,id)
 
