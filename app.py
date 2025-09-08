@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 import pymysql
 import os
 from dotenv import load_dotenv
@@ -7,6 +8,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
+CORS(app)  # Habilitar CORS para el frontend
 
 # Configurar PyMySQL para que funcione como MySQLdb
 pymysql.install_as_MySQLdb()
@@ -34,22 +36,21 @@ class MySQL:
 mysql = MySQL()
 mysql.init_app(app) 
 
-@app.route('/')
+@app.route('/api/equipos', methods=['GET'])
 def index():
     sql="SELECT * FROM equipos"
-
     conexion=mysql.connection
     cursor=conexion.cursor()
     cursor.execute(sql)
     equipos=cursor.fetchall()
     conexion.commit()
-    return render_template('sitio/index.html', equipos=equipos)
+    return jsonify(equipos)
 
-
-@app.route('/sitio/guardar', methods=['POST'])
+@app.route('/api/equipos', methods=['POST'])
 def guardar():
-    descripcion = request.form['descripcion']
-    email= request.form['email']
+    data = request.get_json()
+    descripcion = data['descripcion']
+    email = data['email']
 
     # Insertar datos en la BD
     sql="INSERT INTO equipos (descripcion, email) VALUES (%s, %s)"
@@ -59,38 +60,36 @@ def guardar():
     cursor=conexion.cursor()
     cursor.execute(sql,datos)
     conexion.commit()
-    return redirect ('/')
+    return jsonify({'success': True, 'message': 'Equipo creado correctamente'})
 
-
-@app.route('/sitio/borrar/<int:id>')
+@app.route('/api/equipos/<int:id>', methods=['DELETE'])
 def borrar(id):
-    # Insertar datos en la BD
+    # Eliminar equipo de la BD
     sql="DELETE FROM equipos WHERE id=%s"
     conexion=mysql.connection
     cursor=conexion.cursor()
     cursor.execute(sql,(id,))
     conexion.commit()
-    return redirect ('/')
+    return jsonify({'success': True, 'message': 'Equipo eliminado correctamente'})
 
-
-@app.route('/sitio/editar/<int:id>')
+@app.route('/api/equipos/<int:id>', methods=['GET'])
 def editar(id):    
-    # Consulta para cargar los datos en el formulario
+    # Consulta para obtener los datos del equipo
     sql="SELECT * FROM equipos WHERE id=%s"
     conexion=mysql.connection
     cursor=conexion.cursor()
     cursor.execute(sql,(id,))
     equipos=cursor.fetchone()
     conexion.commit()
-    return render_template ('sitio/editar.html', equipos=equipos)
+    return jsonify(equipos)
 
-@app.route('/sitio/actualizar', methods=['POST'])
-def actualizar():
-    id= request.form['codigo']
-    descripcion = request.form['descripcion']
-    email= request.form['email']
+@app.route('/api/equipos/<int:id>', methods=['PUT'])
+def actualizar(id):
+    data = request.get_json()
+    descripcion = data['descripcion']
+    email = data['email']
 
-    # Insertar datos en la BD
+    # Actualizar datos en la BD
     sql="UPDATE equipos SET descripcion=%s, email=%s WHERE id=%s"
     datos=(descripcion,email,id)
 
@@ -98,7 +97,7 @@ def actualizar():
     cursor=conexion.cursor()
     cursor.execute(sql,datos)
     conexion.commit()
-    return redirect ('/')
+    return jsonify({'success': True, 'message': 'Equipo actualizado correctamente'})
 
 if __name__ == '__main__':
     app.run(debug=True)
