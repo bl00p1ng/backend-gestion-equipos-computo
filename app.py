@@ -8,7 +8,15 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app)  # Habilitar CORS para el frontend
+
+# Configurar CORS para desarrollo local
+CORS(app, resources={
+    r"/api/*": {
+        "origins": ["http://localhost:4200", "http://127.0.0.1:4200"],
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"]
+    }
+})
 
 # Configurar PyMySQL para que funcione como MySQLdb
 pymysql.install_as_MySQLdb()
