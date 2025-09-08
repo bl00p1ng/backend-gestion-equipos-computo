@@ -8,7 +8,7 @@ Sistema web para administrar equipos tecnológicos desarrollado con Flask (Backe
 ### Backend (Flask)
 ```bash
 cd backend
-pip install flask flask-cors pymysql python-dotenv
+pip install -r requirements.txt
 docker-compose up -d  # Iniciar MySQL
 python app.py         # Servidor en http://127.0.0.1:5000
 ```
