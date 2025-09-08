@@ -1,2 +1,4 @@
 flask
-flask_MySQLdb
+pymysql
+python-dotenv
+flask-cors
